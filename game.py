@@ -33,14 +33,21 @@ def move_player(player, direction):
 
     target = direction.replace("go ", "").strip()
     current = player["location"]
+    # Normalize target: lowercase each word then capitalize first letter
+    normalized_target = " ".join(word.capitalize() for word in target.lower().split())
 
-    # Normalize target to match location names (capitalize first letter)
-    normalized_target = target.capitalize()
+    # Special rule: Cave -> Old Bridge requires rope
+    if current == "Cave" and normalized_target == "Old Bridge":
+        if "rope" not in player["inventory"]:
+            return player  # reject, energy unchanged
 
     if normalized_target in LOCATIONS.get(current, []):
+        new_energy = player["energy"] - 1
+        if new_energy < 0:
+            new_energy = 0
         new_player = player.copy()
         new_player["location"] = normalized_target
-        new_player["energy"] = player["energy"] - 1
+        new_player["energy"] = new_energy
         return new_player
 
     return player
@@ -66,6 +73,39 @@ def take_item(player, item_name):
     return new_player
 
 
+def light_beacon(player):
+    """Return a new player dict with won=True if beacon can be lit."""
+    if player["game_over"] or player["won"]:
+        return player
+    if can_light_beacon(player):
+        new_player = player.copy()
+        new_player["won"] = True
+        new_player["game_over"] = True
+        return new_player
+    return player
+
+
+def is_game_over(player):
+    """Return True if game is over (won or lost)."""
+    if player["won"]:
+        return player
+    if player["energy"] <= 0 and not player["won"]:
+        new_player = player.copy()
+        new_player["game_over"] = True
+        return new_player
+    return player
+
+
+def can_cross_bridge(player):
+    """Return True if player has rope to cross from Cave to Old Bridge."""
+    return "rope" in player["inventory"]
+
+
+def can_light_beacon(player):
+    """Return True if player has lantern and is at Lighthouse."""
+    return player["location"] == "Lighthouse" and "lantern" in player["inventory"]
+
+
 def available_actions(player):
     """Return a list of valid action strings for the player's current state."""
     if player["game_over"] or player["won"]:
@@ -74,10 +114,19 @@ def available_actions(player):
     actions = ["quit"]
     current = player["location"]
     for target in LOCATIONS.get(current, []):
-        actions.append(f"go {target.lower()}")
+        # Only show bridge move if player has rope
+        if current == "Cave" and target == "Old Bridge":
+            if "rope" in player["inventory"]:
+                actions.append(f"go {target.lower()}")
+        else:
+            actions.append(f"go {target.lower()}")
 
     for item, loc in ITEM_LOCATIONS.items():
         if loc == current and item not in player["inventory"]:
             actions.append(f"take {item}")
+
+    # Light beacon at Lighthouse with lantern
+    if current == "Lighthouse" and "lantern" in player["inventory"]:
+        actions.append("light beacon")
 
     return actions
