@@ -2,13 +2,25 @@
 
 A text adventure game. Explore the island, find essential items, and signal for rescue.
 
-## Goal
+## Prerequisites
 
-Reach the **Lighthouse** and light the beacon. To do so, you must carry both the **Rope** and the **Lantern**.
+- Python 3.x
 
-## Locations
+## How to Run the Game
 
-The island is a linear chain of five locations:
+```bash
+python3 main.py
+```
+
+## How to Run the Tests
+
+```bash
+python3 -m unittest discover -s tests -v
+```
+
+## Game Rules
+
+### Location Map
 
 ```
 Beach → Jungle → Cave → Old Bridge → Lighthouse
@@ -16,14 +28,14 @@ Beach → Jungle → Cave → Old Bridge → Lighthouse
 
 You can move forward and backward between adjacent locations.
 
-## Items
+### Items
 
 | Item   | Location |
 |--------|----------|
 | Rope   | Jungle   |
 | Lantern| Cave     |
 
-## Energy System
+### Energy System
 
 - You start with **5 energy**.
 - Every legal move costs **1 energy**.
@@ -32,13 +44,18 @@ You can move forward and backward between adjacent locations.
 - Invalid or rejected input costs **0 energy**.
 - If your energy reaches **0 before the beacon is lit**, you lose.
 
-## How to Win
+### Win Condition
 
 1. Be at the **Lighthouse**.
 2. Have both the **Rope** and **Lantern** in your inventory.
 3. Choose the **light beacon** action.
 
-## Energy Math & Difficulty
+### Lose Condition
+
+- Energy reaches **0** before the beacon is lit.
+- The bridge between Cave and Old Bridge cannot be crossed without the **Rope**.
+
+### Energy Math
 
 The optimal path is:
 
@@ -48,13 +65,20 @@ Pick up Rope (0) → Pick up Lantern (0) → Light Beacon (0)
 Total: 4 moves, 5 energy → 1 energy remaining
 ```
 
-**You have room for exactly one mistake.** One extra move (a wrong turn, an unnecessary backtrack) consumes your last energy point and causes you to lose. Any more than one wasted move and the game ends.
+**You have room for exactly one mistake.** One extra move (a wrong turn, an unnecessary backtrack) consumes your last energy point and causes you to lose.
 
-## Commands
+## Available Commands
 
-- `move <direction>` — Move to an adjacent location (costs 1 energy)
-- `inventory` — Check what you are carrying
-- `look` — Describe your current location
-- `pick <item>` — Pick up an item at your current location (free)
+- `go <location>` — Move to an adjacent location (e.g., `go jungle`)
+- `take <item>` — Pick up an item at your current location (e.g., `take rope`)
 - `light beacon` — Light the beacon at the Lighthouse (win condition)
+- `quit` — Exit the game
 - `help` — Show available commands
+
+## Known Limitations
+
+- No save/load functionality
+- Fixed text commands only (no natural language parsing)
+- No location descriptions beyond the current location name
+- No inventory display command (inventory shown only on pickup)
+- Single-player only, no multiplayer
